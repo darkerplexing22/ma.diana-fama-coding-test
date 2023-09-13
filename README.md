@@ -117,4 +117,24 @@ If automatically generating a new repository does not work, follow these steps i
 Q: The management requested a new feature where in the fictional e-commerce app must have a "featured products" section.
 How would you go about implementing this feature in the backend?
 
-A: _Put your answer here_
+A: First, construct a new table with an id, a productid, a boolean for feature or not, and other specifications for featured products. Next, create an administrator with authentication so that it can modify those featured products. Then, develop an API that allows the admin to retrieve all featured products, add, remove, and get the details of featured products. Caching should be implemented in the featured list. There is an automated process in Laravel to schedule tasks and update the list of featured products based on their popularity. Document how to set it up and check if there is anything that needs to be added or modified to the feature. Test it, and make sure only authorized administrators have access to it.
+
+## Setup
+* git clone
+* run xampp control panel
+* Open cmd and type "composer update."
+* Open the file and type "php artisan serve" into the terminal.
+* run xampp control panel
+* add the.env file and setup the database.
+* Open HTTP/API clients such as Postman or Insomnia.
+    Add the following HTTP request:
+    POST: Create Product
+    GET: Product List
+    GET: Get Product Detail
+    PITCH : Update Product
+    DEL: Delete Product
+
+* For create products and product list, send this: http://127.0.0.1:8000/api/product
+   For paginated product list: http://127.0.0.1:8000/api/product?2
+
+    For Product Detail, Update Product, and Delete Product, send this: http://127.0.0.1:8000/api/product/id

@@ -58,7 +58,6 @@ class ProductController extends Controller
             'message' => 'Product retrieved.',
             'data' => $products,
         ]);
-
     }
 
     // Product Detail
@@ -102,14 +101,6 @@ class ProductController extends Controller
                 'product_price' => 'numeric|regex:/^\d+(\.\d{1,2})?$/',
             ]);
 
-            if (isset($data['product_name']) && strlen($data['product_name']) > 255) {
-                throw new \Exception('Product name exceeds 255 characters.');
-            }
-
-            if (isset($data['product_price']) && !is_numeric($data['product_price'])) {
-                throw new \Exception('Product price is not numeric.');
-            }
-
             $product = $this->productService->getProductById($id);
 
             if (!$product) {
@@ -120,6 +111,13 @@ class ProductController extends Controller
                 ], 404);
             }
 
+            if (!is_numeric($data['product_price'])) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Product price must be numeric.',
+                ], 422);
+            }
+
             $updatedProduct = $this->productService->updateProduct($product, $data);
 
             return response()->json([
@@ -127,6 +125,7 @@ class ProductController extends Controller
                 'message' => 'Product updated.',
                 'data' => $updatedProduct,
             ]);
+            
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -156,7 +155,7 @@ class ProductController extends Controller
                 'message' => 'Product not found.',
                 'data' => null,
             ], 404);
-    
+
         }
     }
 }
