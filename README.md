@@ -122,10 +122,9 @@ A: First, construct a new table with an id, a productid, a boolean for feature o
 ## Setup
 * git clone
 * run xampp control panel
-* Open cmd and type "composer update."
-* Open the file and type "php artisan serve" into the terminal.
-* run xampp control panel
-* add the.env file and setup the database.
+* Open the project and use the terminal to type "composer update".
+* Add the.env file and setup the database.
+* Type "php artisan migrate" and "php artisan serve" into the terminal.
 * Open HTTP/API clients such as Postman or Insomnia.
     Add the following HTTP request:
     POST: Create Product
@@ -134,7 +133,7 @@ A: First, construct a new table with an id, a productid, a boolean for feature o
     PITCH : Update Product
     DEL: Delete Product
 
-* For create products and product list, send this: http://127.0.0.1:8000/api/product
-   For paginated product list: http://127.0.0.1:8000/api/product?2
+* For creating products and product lists, send this: http://127.0.0.1:8000/api/product 
+  For paginated product list: http://127.0.0.1:8000/api/product?2
 
-    For Product Detail, Update Product, and Delete Product, send this: http://127.0.0.1:8000/api/product/id
+  For Product Detail, Update Product, and Delete Product: http://127.0.0.1:8000/api/product/id
