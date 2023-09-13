@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Services\ProductService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
 
 class ProductController extends Controller
 {
@@ -18,20 +19,32 @@ class ProductController extends Controller
     // Create Product
     public function store(Request $request){
 
-        $data = $request->validate([
-            'product_name' => 'required|string|max:255',
-            'product_description' => 'required|string',
-            'product_price' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
- 
-        ]);
-
-        $product = $this->productService->createProduct($data);
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Product created',
-            'data' => $product,
-        ]);
+        try {
+            $data = $request->validate([
+                'product_name' => 'required|string|max:255',
+                'product_description' => 'required|string',
+                'product_price' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
+            ]);
+        
+            $product = $this->productService->createProduct($data);
+        
+            return response()->json([
+                'status' => true,
+                'message' => 'Product created',
+                'data' => $product,
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'An error occurred',
+            ], 500);
+        }
     }
 
     // Product List
@@ -60,8 +73,7 @@ class ProductController extends Controller
         }
 
         $product = $this->productService->getProductById($id);
-
-
+        
         if (!$product) {
             return response()->json([
                 'status' => false,
@@ -81,27 +93,45 @@ class ProductController extends Controller
     }
     
     // Update Product 
-    public function update(Request $request, $id){
+    public function update(Request $request, $id)
+    {
+        try {
+            $data = $request->validate([
+                'product_name' => 'string|max:255',
+                'product_description' => 'string',
+                'product_price' => 'numeric|regex:/^\d+(\.\d{1,2})?$/',
+            ]);
 
-        $data = $request->validate([
-            'product_name' => 'nullable|string|max:255',
-            'product_description' => 'nullable|string',
-            'product_price' => 'nullable|numeric|regex:/^\d+(\.\d{1,2})?$/',
- 
-        ]);
+            if (isset($data['product_name']) && strlen($data['product_name']) > 255) {
+                throw new \Exception('Product name exceeds 255 characters.');
+            }
 
-        $product = $this->productService->getProductById($id);
-        
-        if($product){
-            $product = $this->productService->updateProduct($product, $data);
-        }
-        else{
+            if (isset($data['product_price']) && !is_numeric($data['product_price'])) {
+                throw new \Exception('Product price is not numeric.');
+            }
+
+            $product = $this->productService->getProductById($id);
+
+            if (!$product) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Product not found.',
+                    'data' => null,
+                ], 404);
+            }
+
+            $updatedProduct = $this->productService->updateProduct($product, $data);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Product updated.',
+                'data' => $updatedProduct,
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Product not found.',
-                'data' => null,
-            ], 404);
-    
+                'message' => $e->getMessage(),
+            ], 422);
         }
     }
 
