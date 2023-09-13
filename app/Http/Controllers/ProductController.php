@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
+
+    // Create Product
     public function store(Request $request){
 
         $data = $request->validate([
@@ -27,9 +29,11 @@ class ProductController extends Controller
         ]);
     }
 
+    // Product List
     public function index(Request $request){
 
-        $product = Product::all();
+        $perPage = $request->query('per_page', 10);
+        $product = Product::paginate($perPage);
 
         return response()->json([
             'status' => true,
@@ -39,17 +43,37 @@ class ProductController extends Controller
 
     }
 
-    public function show(Request $request, $id){
+    // Product Detail
+    public function show(Request $request, $id)
+    {
+        $cacheKey = 'product_' . $id;
+
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
 
         $product = Product::find($id);
 
-        return response()->json([
+
+        if (!$product) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Product not found.',
+            ], 404);
+        }
+
+        $response = [
             'status' => true,
             'message' => 'Product found.',
             'data' => $product,
-        ]);
-    }
+        ];
 
+        Cache::put($cacheKey, $response, now()->addMinutes(60));
+
+        return response()->json($response);
+    }
+    
+    // Update Product 
     public function update(Request $request, $id){
 
         $data = $request->validate([
@@ -81,6 +105,7 @@ class ProductController extends Controller
         }
     }
 
+    // Delete Product
     public function destroy(Request $request, $id){
 
         $product = Product::find($id);
