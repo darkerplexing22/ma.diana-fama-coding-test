@@ -4,11 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Http\Controllers\Controller;
+use App\Services\ProductService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
+
+    public function __construct(ProductService $productService){
+        $this->productService = $productService;
+    }
 
     // Create Product
     public function store(Request $request){
@@ -20,7 +25,7 @@ class ProductController extends Controller
  
         ]);
 
-        $product = Product::create($data);
+        $product = $this->productService->createProduct($data);
 
         return response()->json([
             'status' => true,
@@ -33,12 +38,12 @@ class ProductController extends Controller
     public function index(Request $request){
 
         $perPage = $request->query('per_page', 10);
-        $product = Product::paginate($perPage);
+        $products = $this->productService->getPaginatedProducts($perPage);
 
         return response()->json([
             'status' => true,
             'message' => 'Product retrieved.',
-            'data' => $product,
+            'data' => $products,
         ]);
 
     }
@@ -46,13 +51,15 @@ class ProductController extends Controller
     // Product Detail
     public function show(Request $request, $id)
     {
+
+        $product = $this->productService->getProductById($id);
         $cacheKey = 'product_' . $id;
 
         if (Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
 
-        $product = Product::find($id);
+        $product = $this->productService->getProductById($id);
 
 
         if (!$product) {
@@ -83,17 +90,10 @@ class ProductController extends Controller
  
         ]);
 
-        $product = Product::find($id);
+        $product = $this->productService->getProductById($id);
         
         if($product){
-
-            $product->update($data);
-            return response()->json([
-                'status' => true,
-                'message' => 'Product found.',
-                'data' => $product,
-            ]);
-    
+            $product = $this->productService->updateProduct($product, $data);
         }
         else{
             return response()->json([
@@ -108,10 +108,10 @@ class ProductController extends Controller
     // Delete Product
     public function destroy(Request $request, $id){
 
-        $product = Product::find($id);
+        $product = $this->productService->getProductById($id);
         
         if($product){
-            $product->delete();
+            $this->productService->deleteProduct($product);
 
             return response()->json([
                 'status' => true,
